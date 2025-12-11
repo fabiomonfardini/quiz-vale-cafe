@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiz do Vale-Café ☕</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Inter, Arial, sans-serif;
+    background: #fff7f0;
+    color: #333;
+  }
+
+  header {
+    padding: 20px;
+    text-align: center;
+  }
+
+  h1 { margin: 0; }
+
+  #quizCard {
+    max-width: 600px;
+    margin: 20px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  }
+
+  .question {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .option {
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  .option:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+
+  #nextBtn, #resultBtn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #6b4f3f;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  #voucherOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    align-items: center;
+    justify-content: center;
+  }
+
+  #voucherBox {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
+  }
+
+  #voucherCode {
+    font-size: 28px;
+    font-weight: bold;
+    background: #eee;
+    padding: 10px;
+    border-radius: 8px;
+    margin: 10px 0 20px 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Quiz do Vale-Café ☕</h1>
+  <p>Se acertar as 5 perguntas, você ganha um vale-café!</p>
+</header>
+
+<!-- BEGIN HENRIQUE SIDEBAR (inserted by assistant) -->
+<style>
+  /* lateral/mascote do Henrique */
+  .henrique-wrap {
+    position: fixed;
+    right: 20px;
+    top: 140px;
+    width: 160px;
+    z-index: 80;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    pointer-events: auto;
+  }
+  .henrique-card {
+    /* larger visual crop */
+    padding:6px;
+    box-sizing:border-box;
+    width: 160px;
+    height: 220px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.22); border: 1px solid rgba(0,0,0,0.04);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    position:relative;
+  }
+  .henrique-card img {
+    width: 100%;
+    height: auto;
+    display:block;
+    object-fit: cover;
+  }
+  .henrique-card.fallback img {
+    border-radius: 10px;
+    object-position: 50% 20%;
+  }
+
+  .henrique-card img { transform: scale(1.06); transition: transform 220ms ease; }
+  .henrique-card:hover img { transform: scale(1.08) rotate(-2deg); }
+  .henrique-balloon {
+    position: absolute;
+    left: -220px;
+    top: 8px;
+    width: 200px;
+    background: linear-gradient(90deg,#fff,#fff7ec);
+    border-radius: 12px;
+    padding: 10px 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    font-weight:700;
+    color:#6b4f3f;
+    transform-origin: right center;
+  }
+  .henrique-balloon:after {
+    content: '';
+    position: absolute;
+    right: -12px;
+    top: 16px;
+    width: 0; height: 0;
+    border-left: 12px solid #fff; border-top: 8px solid transparent; border-bottom: 8px solid transparent;
+  }
+  .henrique-note {
+    font-size:12px;
+    color:#555;
+    background:#fff;
+    padding:6px 8px;border-radius:8px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.06);
+    cursor:pointer;
+  }
+  #henriqueUploader { display:none; }
+  @media (max-width:720px){
+    .henrique-wrap { display:none; }
+  .henrique-card { width:120px; height:180px; }
+  }
+</style>
+
+<div class="henrique-wrap" id="henriqueWrap" aria-hidden="false">
+  <div class="henrique-card fallback" id="henriqueCard">
+    <img id="henriqueImg" src="henrique.png" alt="Henrique">
+  </div>
+  <div class="henrique-balloon" id="henriqueBalloon">Oi, tô de olho! Quer um café?</div>
+  <div style="display:flex;gap:8px;">
+    
+    
+  </div>
+</div>
+
+<script>
+  const henriqueImg = document.getElementById('henriqueImg');
+  const henriqueCard = document.getElementById('henriqueCard');
+  const uploader = document.getElementById('henriqueUploader');
+  const removeBtn = document.getElementById('removeHenriqueBtn');
+
+  (function tryLoadTransparentFile(){
+    const url = 'henrique.png';
+    fetch(url, { method: 'HEAD' })
+      .then(res => {
+        if(res.ok && res.headers.get('content-type') && res.headers.get('content-type').includes('image')) {
+          henriqueImg.src = url;
+          henriqueCard.classList.remove('fallback');
+          console.log('Henrique: using transparent PNG:', url);
+        } else {
+          console.log('Henrique: transparent PNG not found, using fallback image.');
+        }
+      }).catch(err => {
+        console.log('Henrique: no png found; fallback image retained.');
+      });
+  })();
+
+      reader.onload = function(ev){
+      henriqueImg.src = ev.target.result;
+      henriqueCard.classList.remove('fallback');
+    };
+    reader.readAsDataURL(file);
+  });
+
+  
+  </script>
+<!-- END HENRIQUE SIDEBAR -->
+
+
+<div id="quizCard">
+  <div id="questionBox"></div>
+  <button id="nextBtn">Próxima</button>
+  <button id="resultBtn" style="display:none">Finalizar</button>
+</div>
+
+<!-- VOUCHER -->
+<div id="voucherOverlay">
+  <div id="voucherBox">
+    <h2>🎉 Parabéns!</h2>
+    <p>Você ganhou um vale-café:</p>
+    <div id="voucherCode">VALE-00000</div>
+    <button onclick="copyVoucher()">Copiar</button>
+    <button onclick="closeVoucher()">Fechar</button>
+  </div>
+</div>
+
+<script>
+// ===============================
+// 1. CONFIGURE SUAS PERGUNTAS AQUI
+// ===============================
+const QUESTIONS = [
+  {
+    q: "Você está no Shopping e com fome. O que vc comeria?",
+    options: ["Um Hamburguer", "Uma pizza", "Uma Bermuda", "Uma moqueca de camarão"],
+    correct: 2
+  },
+  {
+    q: "Complete a frase: 'Se quer moleza, senta no ___'",
+    options: ["Pudim", "Sofá", "Milho Verde", "Cupim"],
+    correct: 0
+  },
+  {
+    q: "Qual o lugar ideal para praticar uma corrida de 10km?",
+    options: ["Na praia", "Na esteira", "No parque", "Na ponte do AUA"],
+    correct: 3
+  },
+  {
+    q: "Quantos cafés é seguro tomar por dia?",
+    options: ["0", "30", "10", "Depende, mas geralmente 3 a 4"],
+    correct: 1
+  },
+  {
+    q: "Quem é o maior consumidor de café do PG?",
+    options: ["O meu amigo secreto 😎", "Eu", "Ninguém", "Aninha"],
+    correct: 0
+  }
+];
+
+// ===============================
+// 2. QUIZ ENGINE
+// ===============================
+let index = 0;
+let correctCount = 0;
+const questionBox = document.getElementById("questionBox");
+const nextBtn = document.getElementById("nextBtn");
+const resultBtn = document.getElementById("resultBtn");
+
+function loadQuestion() {
+  const q = QUESTIONS[index];
+
+  questionBox.innerHTML = `
+    <div class="question">${q.q}</div>
+    ${q.options.map((op, i) =>
+      `<div class="option" onclick="selectOption(${i})">${op}</div>`
+    ).join("")}
+  `;
+}
+
+function selectOption(i) {
+  if (i === QUESTIONS[index].correct) correctCount++;
+  index++;
+
+  if (index < QUESTIONS.length) {
+    loadQuestion();
+  } else {
+    nextBtn.style.display = "none";
+    resultBtn.style.display = "block";
+  }
+}
+
+resultBtn.onclick = () => {
+  if (correctCount === 5) showVoucher();
+  else alert(`Você acertou ${correctCount}/5. Tente novamente!`);
+};
+
+loadQuestion();
+
+// ===============================
+// 3. VOUCHER
+// ===============================
+function generateVoucher() {
+  return "VALE-UM-CAFÉ No Teu Café!!";
+}
+
+function showVoucher() {
+  const code = generateVoucher();
+  document.getElementById("voucherCode").textContent = code;
+  document.getElementById("voucherOverlay").style.display = "flex";
+}
+
+function closeVoucher() {
+  document.getElementById("voucherOverlay").style.display = "none";
+}
+
+function copyVoucher() {
+  navigator.clipboard.writeText(document.getElementById("voucherCode").textContent);
+  alert("Código copiado!");
+}
+
+</script>
+
+</body>
+</html>
