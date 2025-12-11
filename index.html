@@ -208,12 +208,19 @@
       });
   })();
 
-      reader.onload = function(ev){
-      henriqueImg.src = ev.target.result;
-      henriqueCard.classList.remove('fallback');
-    };
-    reader.readAsDataURL(file);
-  });
+  // Allow uploading a custom Henrique image (hidden input #henriqueUploader)
+  if (uploader) {
+    uploader.addEventListener('change', function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        henriqueImg.src = ev.target.result;
+        henriqueCard.classList.remove('fallback');
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
   
   </script>
